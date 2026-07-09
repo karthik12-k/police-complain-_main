@@ -1,0 +1,25 @@
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# Local env files
+.env
+**/.env
+
+# Editor configurations
+.idea/
+.vscode/
+*.suo
+*.ntvsca
+*.ntvs_analysisfiles
+*.esproj
+
+# Logs
+*.log
+logs/
+
+# Build outputs
+dist/
+build/
+android/app/build/
+ios/build/

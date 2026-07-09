@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Police Login</title>
+  <link rel="stylesheet" href="/public/police.css">
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+</head>
+<body>
+  <div class="fix">
+  <div class="container">
+    <div id="map"></div>
+    <div class="form-container">
+      <h1 style="font-size: 4vw;">Police Signup</h1>
+      <form id="loginForm">
+        <label for="userId">User ID:</label>
+        <input type="text" id="userId" name="user_id" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <label for="occupied">confirmPassword:</label>
+        <input type="password" id="confirmPassword" name="password" required>
+
+        <label for="latitude">Latitude:</label>
+        <input type="text" id="latitude" name="latitude" readonly>
+
+        <label for="longitude">Longitude:</label>
+        <input type="text" id="longitude" name="longitude" readonly>
+
+        <button type="submit" id="loginBtn">Login</button>
+      </form>
+      <div id="message" class="mt-3"></div>
+    </div>
+  </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+  <script>
+    // Mapbox access token
+    mapboxgl.accessToken = 'pk.eyJ1IjoieWVzaHdhbnRoLTIwMDIiLCJhIjoiY2x5ZzR0MW5yMDV2MzJqc2Q4bzJ6b3BmcCJ9.XTSGWy-RZXGe62M9EFzPTQ';
+
+    // Initialize Mapbox map
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [0, 0],
+      zoom: 10
+    });
+
+    // Add geolocation control to show user's location on the map
+    map.addControl(new mapboxgl.GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: true
+      },
+      trackUserLocation: true
+    }));
+
+    navigator.geolocation.watchPosition(position => {
+      const { latitude, longitude } = position.coords;
+      map.setCenter([longitude, latitude]);
+      map.setZoom(14);
+
+      const marker = new mapboxgl.Marker({
+        draggable: true
+      }).setLngLat([longitude, latitude]).addTo(map);
+      
+      // Set the initial value of the location input fields
+      document.getElementById('latitude').value = latitude;
+      document.getElementById('longitude').value = longitude;
+    }, err => {
+      console.error(err);
+    });
+
+    // Handle form submission
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const userId = document.getElementById('userId').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value; // Convert to boolean
+      const latitude = parseFloat(document.getElementById('latitude').value);
+      const longitude = parseFloat(document.getElementById('longitude').value);
+      const location = {
+        type: "Point",
+        coordinates: [longitude, latitude]
+      };
+
+      const messageElement = document.getElementById('message');
+      messageElement.innerHTML = '';
+
+      try {
+        const response = await axios.post('/police/signup', { user_id: userId, password, confirmPassword,location});
+        if (response.status === 200) {
+          messageElement.innerHTML = '<div class="alert alert-success">Logged in successfully.</div>';
+        } else {
+          messageElement.innerHTML = '<div class="alert alert-warning">Login failed.</div>';
+        }
+      } catch (error) {
+        messageElement.innerHTML = `<div class="alert alert-danger">Error: ${error.response ? error.response.data.message : error.message}</div>`;
+      }
+    });
+  </script>
+</body>
+</html>
